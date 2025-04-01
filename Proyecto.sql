@@ -1,4 +1,5 @@
 --1. CREA EL ESQUEMA DE LA BBDD
+-- Preguntar esto en clase
 
 
 --2.Muestra los nombres de todas las películas con una clasificación por edades de R
