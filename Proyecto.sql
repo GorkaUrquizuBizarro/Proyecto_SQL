@@ -1,6 +1,6 @@
 --1. CREA EL ESQUEMA DE LA BBDD
--- Preguntar esto en clase
 
+	--NO ENTIENDO A QUE SE REFIERE
 
 --2.Muestra los nombres de todas las películas con una clasificación por edades de R
 
@@ -22,7 +22,7 @@ SELECT f."title"
 FROM "film"AS f
 WHERE f."language_id"= f."original_language_id";
 
---Todos los datos de la columna original_language_id son NULL
+	--Todos los datos de la columna original_language_id son NULL
 
 
 --5.Ordena las películas por duración de forma ascendente.
@@ -56,7 +56,7 @@ WHERE "rating" = 'PG-13' OR "length">180;
 
 --9.Encuentra la variabilidad de lo que costaría reemplazar las películas.
 
-SELECT ROUND(AVG("replacement_cost"),2) AS "Variabilidad_reemplazo"
+SELECT ROUND(VARIANCE("replacement_cost"),2) AS "Variabilidad_reemplazo"
 FROM "film"AS f;
 
 --10.Encuentra la mayor y menor duración de una película de nuestra BBDD.
@@ -71,7 +71,7 @@ SELECT "payment_date"AS "Fecha_pago",
 		"amount"AS "Costo"
 FROM "payment"AS p
 ORDER BY "payment_date" DESC
-LIMIT 3;
+LIMIT 1 OFFSET 2;
 
 --12.Encuentra el título de las películas en la tabla “filmˮ que no sean ni ‘NC17ʼ ni ‘Gʼ en cuanto a su clasificación.
 
@@ -126,19 +126,26 @@ WHERE "actor_id" IN  (
 
 --18.Selecciona todos los nombres de las películas únicos.
 
+SELECT "title",
+		COUNT (DISTINCT "film_id")
+FROM "film"
+GROUP BY "film_id";
+
 
 /*19. Encuentra el título de las películas que son comedias y tienen una 
 duración mayor a 180 minutos en la tabla “filmˮ.*/
 
 SELECT "title" AS "Nombre_películas",
-		"film_id" AS "Identificador"
+		"film_id" AS "Identificador",
+		"length" AS "Duración"		
 FROM "film"AS f
 WHERE "film_id" IN (
 	SELECT "film_id"
 	FROM "film_category"AS fi
 	INNER JOIN "category" AS c
 	ON fi."category_id" = c."category_id"
-	WHERE "name" ILIKE 'Comedy');
+	WHERE "name" ILIKE 'Comedy')
+AND "length"> 180;
 
 
 /*20.Encuentra las categorías de películas que tienen un promedio de 
@@ -167,10 +174,10 @@ FROM "actor" AS a
 forma descendente.*/
 
 SELECT "rental_date",
-		count("rental_id")
-FROM "rental"AS r
-GROUP BY "rental_id";
-
+		count("rental_id") AS "cantidad"
+FROM "rental"
+GROUP BY "rental_date"
+ORDER BY "cantidad" DESC;
 
 --24.Encuentra las películas con una duración superior al promedio.
 
@@ -183,8 +190,11 @@ ORDER BY "length";
 
 --25.Averigua el número de alquileres registrados por mes.
 
-
-
+SELECT TO_CHAR("rental_date", 'YYYY-MM') AS "mes",
+  COUNT(*) AS "total_alquileres"
+FROM "rental"
+GROUP BY TO_CHAR("rental_date", 'YYYY-MM')
+ORDER BY "mes";
 
 /*26.Encuentra el promedio, la desviación estándar y varianza del total 
 pagado*//
@@ -212,28 +222,24 @@ ON f.film_id =i.film_id
 /*28.Muestra el id de los actores que hayan participado en más de 40 
 películas.*/
 
---TERMINAAAAAARRRRRRRRRRRRRRRRRRR
-
-SELECT a."actor_id" AS "Id",
+SELECT a.actor_id AS "Id",
 		concat(a.first_name,' ',a.last_name)AS "Actor",
-		count (f."film_id") AS "Número_películas"
+		count (f.film_id) AS "Número_películas"
 FROM "actor" AS a
 INNER JOIN "film_actor"AS f
 ON a.actor_id = f.actor_id
-GROUP BY "Id"
-ORDER BY "Id" DESC
+GROUP BY a."actor_id"
+HAVING count(f."film_id")>40;
 
 
 /*29.Obtener todas las películas y, si están disponibles en el inventario, 
 mostrar la cantidad disponible.*/
 
---TERMINAAAAARRRRRRR
-
-SELECT "title"AS "Película"
-FROM "film"AS fi
-INNER JOIN "inventory" AS i
-ON fi."film_id"= i."film_id"
-WHERE 
+SELECT "title" AS "Título",
+		"store_id"AS ""
+FROM "film"AS f
+INNER JOIN "inventory"AS i
+ON f.film_id = i.film_id;
 
 --30.Obtener los actores y el número de películas en las que ha actuado.
 
@@ -384,9 +390,10 @@ ON c."category_id"=fi."category_id"
 			WHERE "name" ILIKE 'action';
 		
 /*46.Encuentra todos los actores que no han participado en películas. */
+
 SELECT "actor_id"
 FROM "film_actor"AS f
-WHERE "film_id" = 'null'
+WHERE "film_id" is null;
  
 /*47.Selecciona el nombre de los actores y la cantidad de películas en las
 que han participado.*/
@@ -471,8 +478,6 @@ WHERE "número_alquileres">=10;
 con el nombre ‘Tammy Sandersʼ y que aún no se han devuelto. Ordena
 los resultados alfabéticamente por título de película.*/
 
---TERMINAAAAAAAAAAAAAARRRRRRRRRRRRRRRRRRR
-
 SELECT "title" AS "Película",
 		"return_date" AS "Fecha_devolución"
 FROM "customer"AS c
@@ -482,7 +487,7 @@ ON c.customer_id = r.customer_id
 	ON r.inventory_id =i.inventory_id
 		INNER JOIN "film" AS f
 		ON i.film_id =f.film_id
-WHERE "first_name" ILIKE 'Tammy'AND r.return_date IN 'NULL'; 
+WHERE "first_name" ILIKE 'Tammy'AND r.return_date IS NULL; 
 
 /*54. Encuentra los nombres de los actores que han actuado en al menos una
 película que pertenece a la categoría ‘Sci-Fiʼ. Ordena los resultados
@@ -517,16 +522,59 @@ películas que se alquilaron después de que la película ‘Spartacus
 Cheaperʼ se alquilara por primera vez. Ordena los resultados
 alfabéticamente por apellido.*/
 
+SELECT DISTINCT a.first_name,
+  a.last_name
+FROM "actor" a
+INNER JOIN "film_actor" AS fa 
+ON a.actor_id = fa.actor_id
+	INNER JOIN "film" AS f
+	ON fa.film_id = f.film_id
+		INNER JOIN "inventory" AS i 
+		ON f.film_id = i.film_id
+			INNER JOIN "rental" AS r 
+			ON i.inventory_id = r.inventory_id
+WHERE
+  r.rental_date >
+    (
+      SELECT MIN(r2.rental_date)
+      FROM film AS f2
+      	JOIN inventory i2 
+      	ON f2.film_id = i2.film_id
+      		JOIN rental AS r2 
+      		ON i2.inventory_id = r2.inventory_id
+      WHERE f2.title = 'SPARTACUS CHEAPER'
+    )
+ORDER BY
+  a.last_name, a.first_name;
 
 
 /*56.Encuentra el nombre y apellido de los actores que no han actuado en
 ninguna película de la categoría ‘Musicʼ.*/
 
 
+SELECT c."name",
+		concat (a."first_name",' ',a."last_name")
+FROM "category" AS c
+INNER JOIN "film_category"AS fi	
+ON c."category_id"=fi."category_id"
+	INNER JOIN "film"AS fil
+	ON fi."film_id"=fil."film_id"
+		INNER JOIN "film_actor"AS filma
+		ON fil."film_id"= filma."film_id"
+			INNER JOIN "actor" AS a
+			ON filma."actor_id"=a."actor_id"
+			WHERE "name" ILIKE 'action';
+
 
 /*57.Encuentra el título de todas las películas que fueron alquiladas por más
 de 8 días.*/
 
+SELECT "title" AS "título",
+		"rental_duration" AS "dias de alquiler"
+FROM "film" AS "pelicula"
+WHERE "rental_duration"> '8';
+
+	--no existen películas con más de 8 dias de tiempo alquiler.
 
 /*58.Encuentra el título de todas las películas que son de la misma categoría
 que ‘Animationʼ*/
@@ -555,6 +603,16 @@ WHERE f."length"= (
 /*60. Encuentra los nombres de los clientes que han alquilado al menos 7
 películas distintas. Ordena los resultados alfabéticamente por apellido.*/
 
+SELECT concat (c."first_name",' ',c."last_name") AS "Cliente",
+		COUNT(DISTINCT(i.film_id)) AS "Numero películas alquiladas"
+FROM "customer" AS c
+INNER JOIN "rental"AS r
+ON c.customer_id = r.customer_id
+	INNER JOIN "inventory"AS i
+	ON r.inventory_id = i.inventory_id
+GROUP BY "Cliente"
+HAVING COUNT(DISTINCT(i.film_id))>=7
+ORDER BY "Numero películas alquiladas" ASC;
 
 /*61. Encuentra la cantidad total de películas alquiladas por categoría y
 muestra el nombre de la categoría junto con el recuento de alquileres.*/
