@@ -2,6 +2,9 @@
 
 	--NO ENTIENDO A QUE SE REFIERE
 
+
+
+
 --2.Muestra los nombres de todas las películas con una clasificación por edades de R
 
 SELECT 
@@ -23,6 +26,15 @@ WHERE "actor_id" BETWEEN 30 AND 40;
 SELECT f."title"
 FROM "film"AS f
 WHERE f."language_id"= f."original_language_id";
+
+SELECT 
+    f."title" AS "Titulo",
+    l."name" AS "Idioma"
+FROM "film" f
+INNER JOIN "language" AS l 
+ON f."language_id" = l."language_id"
+WHERE l."language_id" IS NOT DISTINCT FROM f."original_language_id";
+
 
 	--Todos los datos de la columna original_language_id son NULL
 
@@ -84,7 +96,7 @@ LIMIT 1 OFFSET 2;
 
 SELECT
 	"title" AS "Título",
-	"rating" AS "Clasificación",
+	"rating" AS "Clasificación"
 FROM "film"AS f
 WHERE f.rating NOT IN ('NC-17','G');
 
@@ -137,11 +149,9 @@ WHERE "actor_id" IN  (
 
 --18.Selecciona todos los nombres de las películas únicos.
 
-SELECT
-	"title" AS "Título",
-	COUNT (DISTINCT "film_id")
+SELECT DISTINCT 
+	"title" AS "Título"
 FROM "film"
-GROUP BY "film_id";
 
 
 /*19. Encuentra el título de las películas que son comedias y tienen una 
@@ -166,11 +176,16 @@ duración superior a 110 minutos y muestra el nombre de la categoría
 junto con el promedio de duración.*/
 
 SELECT 
-	"title"AS "Película",
-	"length" AS "Duración"
-FROM "film"AS f
-INNER JOIN "film_category"AS fi
-ON f.
+	c."name"AS "Categoria",
+	ROUND(AVG(f."length"),2) AS "Promedio_Duracion"
+FROM "category"	AS c
+INNER JOIN "film_category"	AS fc
+ON fc.category_id =c.category_id
+INNER JOIN "film" AS f
+ON f.film_id = fc.film_id
+GROUP BY c.name
+HAVING AVG(f."length") >110
+ORDER BY "Promedio_Duracion" ASC
 
 
 --21.¿Cuál es la media de duración del alquiler de las películas?
@@ -205,10 +220,8 @@ ORDER BY "length";
 
 --25.Averigua el número de alquileres registrados por mes.
 
-SELECT
-
-	TO_CHAR("rental_date", 'YYYY-MM') AS "Mes",
-  	COUNT(*) AS "Total_Alquileres"
+SELECT TO_CHAR("rental_date", 'YYYY-MM') AS "mes",
+  COUNT(*) AS "total_alquileres"
 FROM "rental"
 GROUP BY TO_CHAR("rental_date", 'YYYY-MM')
 ORDER BY "mes";
@@ -279,11 +292,14 @@ GROUP BY "Actor";
 ellas, incluso si algunas películas no tienen actores asociados.*/
 
 SELECT 
-	i.title AS "Título",
-	f.actor_id	
-FROM "film"AS i
-LEFT JOIN "film_actor"AS f
-ON f.film_id = i.film_id
+	f.title AS "Título",
+	fa.actor_id,
+	CONCAT(a."first_name",' ', a."last_name") AS "Actor"
+FROM "film"AS f
+LEFT JOIN "film_actor"AS fa
+ON fa.film_id = f.film_id
+LEFT JOIN "actor"AS a
+ON a.actor_id = fa.actor_id
 /*WHERE f."actor_id" IS NULL*/
 
 
@@ -291,12 +307,14 @@ ON f.film_id = i.film_id
 actuado, incluso si algunos actores no han actuado en ninguna película.*/
 
 SELECT 
-	f.actor_id ,
 	concat (a.first_name,' ',a.last_name)AS "actor",
-	f.film_id
+	fi.title
 FROM "actor"AS a
 LEFT JOIN "film_actor"AS f
 ON a.actor_id = f.actor_id
+LEFT JOIN "film" AS fi
+ON fi.film_id = f.film_id
+
  
  /*33.Obtener todas las películas que tenemos y todos los registros de 
 alquiler.*/
@@ -361,7 +379,7 @@ SELECT
 	"last_name" AS "Apellido",
 	"first_name" AS "Nombre"
 FROM "actor"AS a
-ORDER BY "last_name" DESC;
+ORDER BY "last_name" ASC;
 
  --40.Selecciona las primeras 5 películas de la tabla “filmˮ.
 
@@ -548,8 +566,8 @@ película que pertenece a la categoría ‘Sci-Fiʼ. Ordena los resultados
 alfabéticamente por apellido.*/
 
 SELECT DISTINCT 
-    a.first_name,
-    a.last_name
+    a.first_name AS "Nombre",
+    a.last_name AS "Apellido"
 FROM actor a
 JOIN film_actor fa ON a.actor_id = fa.actor_id
 JOIN film_category fc ON fa.film_id = fc.film_id
@@ -606,7 +624,7 @@ ON c."category_id"=fi."category_id"
 		ON fil."film_id"= filma."film_id"
 			INNER JOIN "actor" AS a
 			ON filma."actor_id"=a."actor_id"
-			WHERE "name" ILIKE 'action';
+			WHERE "name" ILIKE 'music';
 
 
 /*57.Encuentra el título de todas las películas que fueron alquiladas por más
