@@ -1,8 +1,110 @@
 --1. CREA EL ESQUEMA DE LA BBDD
 
-	--NO ENTIENDO A QUE SE REFIERE
+CREATE SCHEMA mi_esquema;
 
+SET search_path TO mi_esquema
 
+CREATE TABLE mi_esquema.actor (
+  id SERIAL PRIMARY KEY,
+  nombre VARCHAR(50),
+  email VARCHAR(100)
+);
+
+CREATE TABLE mi_esquema.address (
+  id SERIAL PRIMARY KEY,
+  nombre VARCHAR(50),
+  email VARCHAR(100)
+);
+
+CREATE TABLE mi_esquema.category (
+  id SERIAL PRIMARY KEY,
+  nombre VARCHAR(50),
+  email VARCHAR(100)
+);
+
+CREATE TABLE mi_esquema.city (
+  id SERIAL PRIMARY KEY,
+  nombre VARCHAR(50),
+  email VARCHAR(100)
+);
+
+CREATE TABLE mi_esquema.country (
+  id SERIAL PRIMARY KEY,
+  nombre VARCHAR(50),
+  email VARCHAR(100)
+);
+
+CREATE TABLE mi_esquema.customer (
+  id SERIAL PRIMARY KEY,
+  nombre VARCHAR(50),
+  email VARCHAR(100)
+);
+
+CREATE TABLE mi_esquema.film (
+  id SERIAL PRIMARY KEY,
+  nombre VARCHAR(50),
+  email VARCHAR(100)
+);
+
+CREATE TABLE mi_esquema.film_actor (
+  id SERIAL PRIMARY KEY,
+  nombre VARCHAR(50),
+  email VARCHAR(100)
+);
+
+CREATE TABLE mi_esquema.film_category (
+  id SERIAL PRIMARY KEY,
+  nombre VARCHAR(50),
+  email VARCHAR(100)
+);
+
+CREATE TABLE mi_esquema.film_category (
+  id SERIAL PRIMARY KEY,
+  nombre VARCHAR(50),
+  email VARCHAR(100)
+);
+
+CREATE TABLE mi_esquema.film_category (
+  id SERIAL PRIMARY KEY,
+  nombre VARCHAR(50),
+  email VARCHAR(100)
+);
+
+CREATE TABLE mi_esquema.inventory (
+  id SERIAL PRIMARY KEY,
+  nombre VARCHAR(50),
+  email VARCHAR(100)
+);
+
+CREATE TABLE mi_esquema.language (
+  id SERIAL PRIMARY KEY,
+  nombre VARCHAR(50),
+  email VARCHAR(100)
+);
+
+CREATE TABLE mi_esquema.payment (
+  id SERIAL PRIMARY KEY,
+  nombre VARCHAR(50),
+  email VARCHAR(100)
+);
+
+CREATE TABLE mi_esquema.rental (
+  id SERIAL PRIMARY KEY,
+  nombre VARCHAR(50),
+  email VARCHAR(100)
+);
+
+CREATE TABLE mi_esquema.staff (
+  id SERIAL PRIMARY KEY,
+  nombre VARCHAR(50),
+  email VARCHAR(100)
+);
+
+CREATE TABLE mi_esquema.store (
+  id SERIAL PRIMARY KEY,
+  nombre VARCHAR(50),
+  email VARCHAR(100)
+);
 
 
 --2.Muestra los nombres de todas las películas con una clasificación por edades de R
