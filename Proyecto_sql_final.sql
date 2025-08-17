@@ -151,9 +151,10 @@ ORDER BY "length" ASC;
 
 --6.Encuentra el nombre y apellido de los actores que tengan ‘Allenʼ en su apellido.
 
-SELECT concat ("first_name",' ',"last_name")
-FROM "actor"AS a
-WHERE "last_name" ILIKE 'Allen';
+SELECT CONCAT(first_name, ' ', last_name) AS nombre_completo
+FROM actor AS a
+WHERE last_name ILIKE '%Allen%';
+
 
 --7.Encuentra la cantidad total de películas en cada clasificación de la tabla “filmˮ y muestra la clasificación junto con el recuento.
 
@@ -305,7 +306,7 @@ FROM "actor" AS a
 forma descendente.*/
 
 SELECT 
-	"rental_date" AS "Fecha_Alquiler",
+	date ("rental_date") AS "Fecha_Alquiler",
 	count("rental_id") AS "cantidad"
 FROM "rental"
 GROUP BY "rental_date"
@@ -499,22 +500,22 @@ SELECT
     COUNT(*) AS "Cantidad"
 FROM actor
 GROUP BY first_name
-ORDER BY cantidad DESC;
+ORDER BY "Cantidad" DESC;
 
 
 /*42. Encuentra todos los alquileres y los nombres de los clientes que los
 realizaron*/
 
 SELECT 
-	c."first_name" AS "Nombre",
-	c."last_name" AS "Apellido",
-	c."customer_id",
-	count("rental_id")AS "Número_alquileres"
-FROM "rental"AS r
-INNER JOIN "customer"AS c
-ON r."customer_id"= c."customer_id"
-GROUP BY c."customer_id"
-ORDER BY c."customer_id";
+    r.rental_id,
+    r.rental_date,
+    c.first_name AS nombre,
+    c.last_name AS apellido
+FROM rental AS r
+INNER JOIN customer AS c 
+ON r.customer_id = c.customer_id
+ORDER BY r.rental_id;
+
 
 /*43.Muestra todos los clientes y sus alquileres si existen, incluyendo
 aquellos que no tienen alquileres.*/
@@ -713,32 +714,52 @@ ORDER BY
 /*56.Encuentra el nombre y apellido de los actores que no han actuado en
 ninguna película de la categoría ‘Musicʼ.*/
 
-
 SELECT 
-	c."name" AS "Nombre",
-	concat (a."first_name",' ',a."last_name") AS "Nombre_Apellido"
-FROM "category" AS c
-INNER JOIN "film_category"AS fi	
-ON c."category_id"=fi."category_id"
-	INNER JOIN "film"AS fil
-	ON fi."film_id"=fil."film_id"
-		INNER JOIN "film_actor"AS filma
-		ON fil."film_id"= filma."film_id"
-			INNER JOIN "actor" AS a
-			ON filma."actor_id"=a."actor_id"
-			WHERE "name" ILIKE 'music';
+	 CONCAT(a.first_name, ' ', a.last_name) AS nombre_completo
+FROM "actor" AS a
+WHERE a."actor_id" NOT IN (
+    SELECT fa."actor_id"
+    FROM "film_actor" AS fa
+    INNER JOIN "film_category" AS fc 
+    ON fa."film_id" = fc."film_id"
+    INNER JOIN "category" AS c 
+   	ON fc."category_id" = c."category_id"
+    	WHERE c."name" ILIKE 'Music'
+)
+ORDER BY "nombre_completo";
 
+		/*Esta opción seria para ver en que categorias ha participado cada actor excluyendo que hayan trabajado en categoria "Music"
+		SELECT 
+		    CONCAT(a.first_name, ' ', a.last_name) AS nombre_completo,
+		    c.name AS categoria
+		FROM actor AS a
+		JOIN film_actor AS fa ON a.actor_id = fa.actor_id
+		JOIN film_category AS fc ON fa.film_id = fc.film_id
+		JOIN category AS c ON fc.category_id = c.category_id
+		WHERE a.actor_id NOT IN (
+		    SELECT fa.actor_id
+		    FROM film_actor AS fa
+		    JOIN film_category AS fc ON fa.film_id = fc.film_id
+		    JOIN category AS c ON fc.category_id = c.category_id
+		    WHERE c.name ILIKE 'Music'
+		)
+		ORDER BY nombre_completo, categoria; */
 
 /*57.Encuentra el título de todas las películas que fueron alquiladas por más
 de 8 días.*/
 
-SELECT 
-	"title" AS "título",
-	"rental_duration" AS "dias de alquiler"
-FROM "film" AS "pelicula"
-WHERE "rental_duration"> '8';
+SELECT
+    f."title" AS "Titulo",
+    FLOOR(EXTRACT(epoch FROM (r."return_date" - r."rental_date")) / 86400) AS "duracion_dias"
+FROM "rental" AS r
+INNER JOIN "inventory" AS i 
+ON r."inventory_id" = i."inventory_id"
+INNER JOIN "film" AS f 
+ON i."film_id" = f."film_id"
+WHERE r."return_date" IS NOT NULL
+  AND (r."return_date" - r."rental_date") > INTERVAL '8 days'
+ORDER BY "duracion_dias" DESC;
 
-	--no existen películas con más de 8 dias de tiempo alquiler.
 
 /*58.Encuentra el título de todas las películas que son de la misma categoría
 que ‘Animationʼ*/
@@ -808,7 +829,7 @@ INNER JOIN "film_category"AS i
 ON i.category_id  = c.category_id
 INNER JOIN "film"AS f
 ON i.film_id = f.film_id
-WHERE f.release_year >= 2006
+WHERE f.release_year = 2006
 GROUP BY "name";
 
 /*63. Obtén todas las combinaciones posibles de trabajadores con las tiendas
